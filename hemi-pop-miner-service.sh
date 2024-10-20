@@ -183,9 +183,10 @@ else
             show "Error: Private key not found in generated wallet info."
             exit 1
         fi
+            read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
+            show "Wallet info:"
+            cat ~/popm-address.json
     fi
-
-    read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
 fi
 
 # Create or update the systemd service file
