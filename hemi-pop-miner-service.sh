@@ -213,5 +213,6 @@ sudo systemctl daemon-reload
 sudo systemctl start "$SERVICE_NAME"
 show "$SERVICE_NAME started."
 
-# Real-time service logs
-sudo journalctl -f -u "$SERVICE_NAME" &
+journalctl -u "$SERVICE_NAME" -f
+# Exit the script after displaying logs
+exit 0
