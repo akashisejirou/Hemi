@@ -103,7 +103,7 @@ if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
     # If the service exists, check if it's running
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         sudo systemctl stop "$SERVICE_NAME"
-        show "$SERVICE_NAME stopped."
+        sleep 5
     fi
 
     # Get existing private key and fee if available
