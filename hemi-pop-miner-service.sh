@@ -158,7 +158,7 @@ After=network.target
 Type=simple
 User=root
 ExecStart=$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/popmd
-Restart=on-failure
+Restart=always
 Environment=POPM_BTC_PRIVKEY=${POPM_BTC_PRIVKEY}
 Environment=POPM_STATIC_FEE=${POPM_STATIC_FEE}
 Environment=POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public
