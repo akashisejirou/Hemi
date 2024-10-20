@@ -121,6 +121,26 @@ if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
         read -p "Enter your new POPM_STATIC_FEE: " POPM_STATIC_FEE
     fi
 
+    # Show the current wallet info and ask for confirmation
+    echo "{\"private_key\": \"$POPM_BTC_PRIVKEY\"}" > ~/popm-address.json
+    cat ~/popm-address.json
+
+    # Ask if the information is correct
+    while true; do
+        read -p "Is the wallet information correct? (yes/no): " confirm
+        if [ "$confirm" == "yes" ]; then
+            break
+        else
+            read -p "Do you want to change your POPM_BTC_PRIVKEY or fees? (key/fee/no): " change_choice
+            if [ "$change_choice" == "key" ]; then
+                read -p "Enter your new POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
+            elif [ "$change_choice" == "fee" ]; then
+                read -p "Enter your new POPM_STATIC_FEE: " POPM_STATIC_FEE
+            fi
+            echo "{\"private_key\": \"$POPM_BTC_PRIVKEY\"}" > ~/popm-address.json
+            cat ~/popm-address.json
+        fi
+    done
 else
     # If the service does not exist, ask for POPM_BTC_PRIVKEY and POPM_STATIC_FEE
     show "Service $SERVICE_NAME does not exist. Proceeding to set up the miner..."
@@ -128,7 +148,26 @@ else
     read -p "Do you want to use an existing wallet or generate a new one? (existing/new): " wallet_choice
 
     if [ "$wallet_choice" == "existing" ]; then
-        read -p "Enter your POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
+        while true; do
+            read -p "Enter your POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
+            # Show the private key in a dummy JSON format to simulate the address file
+            echo "{\"private_key\": \"$POPM_BTC_PRIVKEY\"}" > ~/popm-address.json
+            show "Wallet info:"
+            cat ~/popm-address.json
+            
+            # Ask if the information is correct
+            read -p "Is the wallet information correct? (yes/no): " confirm
+            if [ "$confirm" == "yes" ]; then
+                break
+            else
+                read -p "Do you want to change your POPM_BTC_PRIVKEY or fees? (key/fee/no): " change_choice
+                if [ "$change_choice" == "key" ]; then
+                    read -p "Enter your new POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
+                elif [ "$change_choice" == "fee" ]; then
+                    read -p "Enter your new POPM_STATIC_FEE: " POPM_STATIC_FEE
+                fi
+            fi
+        done
     else
         echo "Generating a new wallet..."
         KEYGEN_BINARY="$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/keygen"  # Update this path as needed
@@ -141,9 +180,9 @@ else
             show "Error: Private key not found in generated wallet info."
             exit 1
         fi
+           # Ask for the static fee after confirming the wallet
+           read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
     fi
-
-    read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
 fi
 
 # Create or update the systemd service file
@@ -161,25 +200,17 @@ ExecStart=$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/popmd
 Restart=on-failure
 Environment=POPM_BTC_PRIVKEY=${POPM_BTC_PRIVKEY}
 Environment=POPM_STATIC_FEE=${POPM_STATIC_FEE}
-Environment=POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public
+Environment=TC_NODE=your_btc_node_here
 
 [Install]
 WantedBy=multi-user.target
 EOL
 
-show "Service file created/updated at $SERVICE_FILE"
-
-# Reload the systemd daemon to recognize the new service file
+# Reload the systemd daemon and start the service
 sudo systemctl daemon-reload
-
-# Enable and start the service
-sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl start "$SERVICE_NAME"
-show "Hemi miner service started."
+show "$SERVICE_NAME has been started."
 
-# Display real-time logs
-show "Displaying real-time logs. Press Ctrl+C to stop."
-journalctl -u "$SERVICE_NAME" -f
-
-# Exit the script after displaying logs
-exit 0
+# Display real-time logs for the service
+show "Displaying real-time logs for $SERVICE_NAME..."
+sudo journalctl -f -u "$SERVICE_NAME"
