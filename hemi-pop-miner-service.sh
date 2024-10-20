@@ -182,37 +182,50 @@ else
             show "Error: Private key not found in generated wallet info."
             exit 1
         fi
-            read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
-            show "Wallet info:"
-            cat ~/popm-address.json
+        read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
+        show "Wallet info:"
+        cat ~/popm-address.json
     fi
 fi
 
 # Create or update the systemd service file
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
+if [ -f "$SERVICE_FILE" ]; then
+    sudo rm "$SERVICE_FILE"
+fi
 
-cat <<EOL | sudo tee "$SERVICE_FILE"
+# Create the new service file
+sudo bash -c "cat > $SERVICE_FILE <<EOF
 [Unit]
-Description=Hemi Proof of Proof Miner Service
+Description=Hemi Miner Service
 After=network.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/popmd
-Restart=always
+WorkingDirectory=$HEMI_DIR
+ExecStart=$HEMI_DIR/popmd -json -log-level=info
 Environment=POPM_BTC_PRIVKEY=$POPM_BTC_PRIVKEY
 Environment=POPM_STATIC_FEE=$POPM_STATIC_FEE
+StandardOutput=null
+StandardError=null
 
 [Install]
 WantedBy=multi-user.target
-EOL
+EOF"
 
-# Reload systemd to apply changes and start the service
+# Reload systemd to recognize the new service
 sudo systemctl daemon-reload
-sudo systemctl start "$SERVICE_NAME"
-show "$SERVICE_NAME started."
 
+# Enable the service to start on boot
+sudo systemctl enable "$SERVICE_NAME"
+
+# Start the service
+sudo systemctl start "$SERVICE_NAME"
+
+show "Service $SERVICE_NAME has been created and started."
+show "Displaying real-time logs. Press Ctrl+C to stop."
 journalctl -u "$SERVICE_NAME" -f
+
 # Exit the script after displaying logs
 exit 0
