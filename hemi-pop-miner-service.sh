@@ -103,6 +103,7 @@ if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
     # If the service exists, check if it's running
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         sudo systemctl stop "$SERVICE_NAME"
+        sleep 2 
     fi
 
     # Get existing private key and fee if available
@@ -203,7 +204,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=$HEMI_DIR/heminetwork_"$LATEST_VERSION"_linux_amd64/popmd > /dev/null 2>&1
+ExecStart=$HEMI_DIR/heminetwork_"$LATEST_VERSION"_linux_amd64/popmd
 Restart=on-failure
 Environment=POPM_BTC_PRIVKEY=$POPM_BTC_PRIVKEY
 Environment=POPM_STATIC_FEE=$POPM_STATIC_FEE
