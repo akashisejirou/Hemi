@@ -83,11 +83,15 @@ show "Extraction complete."
 # Ask user for POPM_BTC_PRIVKEY and POPM_STATIC_FEE
 read -p "Do you want to use an existing wallet or generate a new one? (existing/new): " wallet_choice
 
+# Set the path for the keygen binary
+KEYGEN_BINARY="./hemi/${ARCH_FOLDER}/keygen"
+
 if [ "$wallet_choice" == "existing" ]; then
     read -p "Enter your POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
 else
     echo "Generating a new wallet..."
-    ./keygen -secp256k1 -json -net="testnet" > ~/popm-address.json
+    # Call the keygen binary to generate a new wallet
+    $KEYGEN_BINARY -secp256k1 -json -net="testnet" > ~/popm-address.json
     show "New wallet generated. Wallet info:"
     cat ~/popm-address.json
     POPM_BTC_PRIVKEY=$(jq -r '.privkey' ~/popm-address.json)
