@@ -94,7 +94,7 @@ else
     $KEYGEN_BINARY -secp256k1 -json -net="testnet" > ~/popm-address.json
     show "New wallet generated. Wallet info:"
     cat ~/popm-address.json
-    POPM_BTC_PRIVKEY=$(jq -r '.privkey' ~/popm-address.json)
+    POPM_BTC_PRIVKEY=$(jq -r '.private_key' ~/popm-address.json)
 fi
 
 read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
