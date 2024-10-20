@@ -124,6 +124,7 @@ if systemctl list-units --full --quiet --all "$SERVICE_NAME"; then
     fi
 
     # Restart the service
+    systemctl daemon-reload
     show "Restarting service $SERVICE_NAME..."
     sudo systemctl start $SERVICE_NAME
     show "Service restarted."
