@@ -208,6 +208,9 @@ Restart=on-failure
 Environment=POPM_BTC_PRIVKEY=$POPM_BTC_PRIVKEY
 Environment=POPM_STATIC_FEE=$POPM_STATIC_FEE
 Environment=POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public
+StandardOutput=null
+StandardError=null
+
 
 [Install]
 WantedBy=multi-user.target
