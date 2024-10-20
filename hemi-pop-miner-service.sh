@@ -203,12 +203,11 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=$HEMI_DIR
-ExecStart=$HEMI_DIR/popmd -json -log-level=info
+ExecStart=$HEMI_DIR/heminetwork_"$LATEST_VERSION"_linux_amd64/popmd
+Restart=on-failure
 Environment=POPM_BTC_PRIVKEY=$POPM_BTC_PRIVKEY
 Environment=POPM_STATIC_FEE=$POPM_STATIC_FEE
-StandardOutput=null
-StandardError=null
+Environment=POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public
 
 [Install]
 WantedBy=multi-user.target
