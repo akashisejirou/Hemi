@@ -52,21 +52,23 @@ if systemctl list-units --full --quiet --all "$SERVICE_NAME"; then
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         sudo systemctl stop "$SERVICE_NAME"
         show "$SERVICE_NAME stopped."
-    fi
 
-    # Initialize variables with existing values
-    POPM_BTC_PRIVKEY=$(systemctl show "$SERVICE_NAME" -p Environment | grep -oP '(?<=POPM_BTC_PRIVKEY=).*')
-    POPM_STATIC_FEE=$(systemctl show "$SERVICE_NAME" -p Environment | grep -oP '(?<=POPM_STATIC_FEE=).*')
+        # Initialize variables with existing values
+        POPM_BTC_PRIVKEY=$(systemctl show "$SERVICE_NAME" -p Environment | grep -oP '(?<=POPM_BTC_PRIVKEY=).*')
+        POPM_STATIC_FEE=$(systemctl show "$SERVICE_NAME" -p Environment | grep -oP '(?<=POPM_STATIC_FEE=).*')
 
-    # Ask if the user wants to update the private key or fees
-    read -p "Do you want to change your POPM_BTC_PRIVKEY? (yes/no): " change_key
-    if [ "$change_key" == "yes" ]; then
-        read -p "Enter your new POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
-    fi
+        # Ask if the user wants to update the private key or fees
+        read -p "Do you want to change your POPM_BTC_PRIVKEY? (yes/no): " change_key
+        if [ "$change_key" == "yes" ]; then
+            read -p "Enter your new POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
+        fi
 
-    read -p "Do you want to change your POPM_STATIC_FEE? (yes/no): " change_fee
-    if [ "$change_fee" == "yes" ]; then
-        read -p "Enter your new POPM_STATIC_FEE: " POPM_STATIC_FEE
+        read -p "Do you want to change your POPM_STATIC_FEE? (yes/no): " change_fee
+        if [ "$change_fee" == "yes" ]; then
+            read -p "Enter your new POPM_STATIC_FEE: " POPM_STATIC_FEE
+        fi
+    else
+        show "$SERVICE_NAME exists but is not active. Proceeding to update binaries."
     fi
 else
     # If the service does not exist, ask for POPM_BTC_PRIVKEY and POPM_STATIC_FEE
