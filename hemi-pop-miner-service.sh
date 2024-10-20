@@ -43,6 +43,17 @@ check_latest_version() {
 # Call the function to get the latest version
 check_latest_version
 
+# Create 'hemi' directory if it doesn't exist
+HEMI_DIR="/root/hemi"
+if [ ! -d "$HEMI_DIR" ]; then
+    show "Creating directory: $HEMI_DIR"
+    mkdir -p "$HEMI_DIR"
+    if [ $? -ne 0 ]; then
+        show "Failed to create directory $HEMI_DIR."
+        exit 1
+    fi
+fi
+
 # Set the service name
 SERVICE_NAME="hemi-miner.service"
 
@@ -125,7 +136,7 @@ if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
 
     # Extract the downloaded file into the 'hemi' folder
     show "Extracting file..."
-    tar -xzf "hemi/${ARCH_FOLDER}.tar.gz" -C hemi
+    tar -xzf "hemi/${ARCH_FOLDER}.tar.gz" -C "$HEMI_DIR"
     if [ $? -ne 0 ]; then
         show "Failed to extract file."
         exit 1
