@@ -43,6 +43,19 @@ check_latest_version() {
 # Call the function to get the latest version
 check_latest_version
 
+# Detect the architecture before downloading binaries
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then
+    ARCH_FOLDER="heminetwork_${LATEST_VERSION}_linux_amd64"
+    DOWNLOAD_URL="https://github.com/hemilabs/heminetwork/releases/download/${LATEST_VERSION}/heminetwork_${LATEST_VERSION}_linux_amd64.tar.gz"
+elif [ "$ARCH" = "arm64" ]; then
+    ARCH_FOLDER="heminetwork_${LATEST_VERSION}_linux_arm64"
+    DOWNLOAD_URL="https://github.com/hemilabs/heminetwork/releases/download/${LATEST_VERSION}/heminetwork_${LATEST_VERSION}_linux_arm64.tar.gz"
+else
+    show "Unsupported architecture: $ARCH"
+    exit 1
+fi
+
 # Create 'hemi' directory if it doesn't exist
 HEMI_DIR="/root/hemi"
 if [ ! -d "$HEMI_DIR" ]; then
@@ -52,6 +65,31 @@ if [ ! -d "$HEMI_DIR" ]; then
         show "Failed to create directory $HEMI_DIR."
         exit 1
     fi
+fi
+
+# Check if the current version matches the latest version
+CURRENT_VERSION=$(grep -oP '(?<=heminetwork_)[^/]*' "$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/popmd" 2>/dev/null)
+
+if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+    # If not up to date, download the latest version
+    show "Downloading $ARCH_FOLDER..."
+    curl -L "$DOWNLOAD_URL" -o "$HEMI_DIR/${ARCH_FOLDER}.tar.gz"
+    if [ $? -ne 0 ]; then
+        show "Failed to download file. Please check your internet connection."
+        exit 1
+    fi
+    show "Downloaded: $HEMI_DIR/${ARCH_FOLDER}.tar.gz"
+
+    # Extract the downloaded file into the 'hemi' folder
+    show "Extracting file..."
+    tar -xzf "$HEMI_DIR/${ARCH_FOLDER}.tar.gz" -C "$HEMI_DIR"
+    if [ $? -ne 0 ]; then
+        show "Failed to extract file."
+        exit 1
+    fi
+    show "Extraction complete."
+else
+    show "You are already using the latest version: $LATEST_VERSION."
 fi
 
 # Set the service name
@@ -93,7 +131,7 @@ else
         read -p "Enter your POPM_BTC_PRIVKEY: " POPM_BTC_PRIVKEY
     else
         echo "Generating a new wallet..."
-        KEYGEN_BINARY="./hemi/heminetwork_${LATEST_VERSION}_linux_amd64/keygen"  # Update this path as needed
+        KEYGEN_BINARY="$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/keygen"  # Update this path as needed
         $KEYGEN_BINARY -secp256k1 -json -net="testnet" > ~/popm-address.json
         show "New wallet generated. Wallet info:"
         cat ~/popm-address.json
@@ -108,44 +146,6 @@ else
     read -p "Enter your POPM_STATIC_FEE: " POPM_STATIC_FEE
 fi
 
-# Detect the architecture before downloading binaries
-ARCH=$(uname -m)
-if [ "$ARCH" = "x86_64" ]; then
-    ARCH_FOLDER="heminetwork_${LATEST_VERSION}_linux_amd64"
-    DOWNLOAD_URL="https://github.com/hemilabs/heminetwork/releases/download/${LATEST_VERSION}/heminetwork_${LATEST_VERSION}_linux_amd64.tar.gz"
-elif [ "$ARCH" = "arm64" ]; then
-    ARCH_FOLDER="heminetwork_${LATEST_VERSION}_linux_arm64"
-    DOWNLOAD_URL="https://github.com/hemilabs/heminetwork/releases/download/${LATEST_VERSION}/heminetwork_${LATEST_VERSION}_linux_arm64.tar.gz"
-else
-    show "Unsupported architecture: $ARCH"
-    exit 1
-fi
-
-# Check if the current version matches the latest version
-CURRENT_VERSION=$(grep -oP '(?<=heminetwork_)[^/]*' /root/hemi/heminetwork_${LATEST_VERSION}_linux_amd64/popmd 2>/dev/null)
-
-if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
-    # If not up to date, download the latest version
-    show "Downloading $ARCH_FOLDER..."
-    curl -L "$DOWNLOAD_URL" -o "hemi/${ARCH_FOLDER}.tar.gz"
-    if [ $? -ne 0 ]; then
-        show "Failed to download file. Please check your internet connection."
-        exit 1
-    fi
-    show "Downloaded: hemi/${ARCH_FOLDER}.tar.gz"
-
-    # Extract the downloaded file into the 'hemi' folder
-    show "Extracting file..."
-    tar -xzf "hemi/${ARCH_FOLDER}.tar.gz" -C "$HEMI_DIR"
-    if [ $? -ne 0 ]; then
-        show "Failed to extract file."
-        exit 1
-    fi
-    show "Extraction complete."
-else
-    show "You are already using the latest version: $LATEST_VERSION."
-fi
-
 # Create or update the systemd service file
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 
@@ -157,7 +157,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/root/hemi/heminetwork_${LATEST_VERSION}_linux_amd64/popmd
+ExecStart=$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/popmd
 Restart=on-failure
 Environment=POPM_BTC_PRIVKEY=${POPM_BTC_PRIVKEY}
 Environment=POPM_STATIC_FEE=${POPM_STATIC_FEE}
