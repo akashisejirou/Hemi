@@ -204,7 +204,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=$HEMI_DIR/heminetwork_"$LATEST_VERSION"_linux_amd64/popmd
+ExecStart=$HEMI_DIR/heminetwork_${LATEST_VERSION}_linux_amd64/popmd
 Restart=on-failure
 Environment=POPM_BTC_PRIVKEY=$POPM_BTC_PRIVKEY
 Environment=POPM_STATIC_FEE=$POPM_STATIC_FEE
